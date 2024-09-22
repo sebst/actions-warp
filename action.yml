@@ -17,6 +17,7 @@ runs:
           echo "You must accept the Cloudflare WARP terms of service by setting the 'tos' input to 'YES'."
           exit 1
         fi
+      shell: bash
     - name: Install WARP
       run: |
         echo "Setting up Cloudflare WARP..."
@@ -28,6 +29,7 @@ runs:
         sudo warp-cli --accept-tos mode warp+doh
         sudo warp-cli --accept-tos connect
         sleep 1
+      shell: bash
     - name: Ensure connection is WARP'ed
       run: |
         echo "Checking WARP connection..."
