@@ -1,0 +1,36 @@
+name: 'Cloudflare WARP for Github Actions'
+author: 'sebst <sebst@users.noreply.github.com>'
+description: 'Activate WARP tunnel in Github Actions (Debian/Ubuntu).'
+
+inputs:
+  tos:
+    description: 'Required: Set this to "YES" to accept the Cloudflare WARP terms of service.'
+    required: true
+    default: 'NO'
+
+runs:
+  using: composite
+  steps:
+    - name: Check TOS
+      run: |
+        if [ "${{ inputs.tos }}" != 'YES' ]; then
+          echo "You must accept the Cloudflare WARP terms of service by setting the 'tos' input to 'YES'."
+          exit 1
+        fi
+    - name: Install WARP
+      run: |
+        echo "Setting up Cloudflare WARP..."
+        sudo apt-get -y update
+        curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+        sudo apt-get update && sudo apt-get install -y --no-install-recommends cloudflare-warp
+        sudo warp-cli --accept-tos registration new
+        sudo warp-cli --accept-tos mode warp+doh
+        sudo warp-cli --accept-tos connect
+        sleep 1
+    - name: Ensure connection is WARP'ed
+      run: |
+        echo "Checking WARP connection..."
+        sudo warp-cli status
+        curl -s https://www.cloudflare.com/cdn-cgi/trace | grep "warp=on"
+      shell: bash
