@@ -33,6 +33,5 @@ runs:
     - name: Ensure connection is WARP'ed
       run: |
         echo "Checking WARP connection..."
-        sudo warp-cli status
         curl -s https://www.cloudflare.com/cdn-cgi/trace | grep "warp=on"
       shell: bash
